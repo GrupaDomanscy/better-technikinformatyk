@@ -26,6 +26,13 @@
       goBackArrow.addEventListener("click", () => {
         window.location.href = "/";
       });
+
+      const { invoke } = window.__TAURI__.tauri
+
+      invoke("generate_new_set", {})
+        .then(res => console.log(res))
+        .catch(err => console.error(err));
+
     </script>
   </body>
 </html>
