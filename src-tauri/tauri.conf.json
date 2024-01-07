@@ -1,7 +1,7 @@
 {
   "build": {
     "beforeDevCommand": "",
-    "beforeBuildCommand": "",
+    "beforeBuildCommand": "bunx tailwindcss -o ../src/styles.css",
     "devPath": "../src",
     "distDir": "../src",
     "withGlobalTauri": true
