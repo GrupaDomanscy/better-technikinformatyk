@@ -1,4 +1,6 @@
-#[derive(Debug)]
+use serde::Serialize;
+
+#[derive(Debug, Serialize)]
 pub struct Question {
     question: String,
     code: Option<String>,
@@ -30,6 +32,17 @@ impl Question {
 
     pub fn answers(&self) -> &Vec<String> {
         return &self.answers;
+    }
+}
+
+impl Clone for Question {
+    fn clone(&self) -> Self {
+        return Self{
+            question: self.question.clone(),
+            code: self.code.clone(),
+            image: self.image.clone(),
+            answers: self.answers.clone()
+        };
     }
 }
 

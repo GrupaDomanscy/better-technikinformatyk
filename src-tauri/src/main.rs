@@ -3,19 +3,43 @@
 
 use std::sync::{Arc, Mutex};
 
+use models::Question;
+
 mod models;
 mod parsing;
 
-struct ParserQuestionsState(pub Arc<Mutex<Vec<models::Question>>>);
+struct TestStateShape {
+    answers: Vec<usize>,
+    questions: Vec<models::Question>
+}
+
+impl TestStateShape {
+    pub fn new() -> TestStateShape{
+        return Self{
+            answers: vec![],
+            questions: vec![]
+        };
+    }
+
+    fn questions(&self) -> &Vec<models::Question> {
+        return &self.questions;
+    }
+
+    fn set_questions(&mut self, new_questions: Vec<models::Question>) {
+        self.questions = new_questions;
+    }
+}
+
+type TestState = Arc<Mutex<TestStateShape>>;
 
 #[tauri::command]
-async fn generate_new_set<'a>(state: tauri::State<'a, ParserQuestionsState>) -> Result<(), String> {
-    let state = state.0.clone();
+async fn generate_new_set<'a>(state: tauri::State<'a, TestState>) -> Result<(), String> {
+    let state = state.clone();
 
     match parsing::generate_new_set().await {
         Ok(v) => {
             let mut state = state.lock().unwrap();
-            *state = v;
+            (*state).set_questions(v);
         },
         Err(e) => return Err(e.to_string()),
     };
@@ -23,22 +47,32 @@ async fn generate_new_set<'a>(state: tauri::State<'a, ParserQuestionsState>) -> 
     Ok(())
 }
 
-
 #[tauri::command]
-fn get_question_from_state(state: tauri::State<ParserQuestionsState>) -> Option<String> {
-    let questions = &state.0.lock().unwrap();
+fn get_question_from_state(state: tauri::State<TestState>) -> Option<String> {
+    let state = state.clone();
+    let state = state.lock().unwrap();
 
+    let questions = state.questions();
     let question_obj = questions.get(0).unwrap();
-
     let question = question_obj.question().clone();
 
     return Some(question);
 }
 
+#[tauri::command]
+fn get_all_questions_from_state(state: tauri::State<TestState>) -> Vec<Question> {
+    let state = state.clone();
+    let state = state.lock().unwrap();
+
+    let questions = state.questions();
+    let questions = questions.clone();
+    return questions;
+}
+
 fn main() {
     tauri::Builder::default()
-        .manage(ParserQuestionsState(Default::default()))
-        .invoke_handler(tauri::generate_handler![generate_new_set, get_question_from_state])
+        .manage(Arc::new(Mutex::new(TestStateShape::new())))
+        .invoke_handler(tauri::generate_handler![generate_new_set, get_question_from_state, get_all_questions_from_state])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
