@@ -15,7 +15,7 @@ fn get_question(fragment: &Html, question_index: isize) -> anyhow::Result<String
     let mut question_text: String;
 
     match fragment.select(&question_text_selector).next() {
-        Some(v) => question_text = v.inner_html(),
+        Some(v) => question_text = v.text().collect::<Vec<_>>().join("").to_string(),
         None => return Err(anyhow!("'fragment.select(&question_text_selector).next()' returned None.")),
     };
 
@@ -30,6 +30,31 @@ fn get_question(fragment: &Html, question_index: isize) -> anyhow::Result<String
     return Ok(question_text);
 }
 
+fn get_answers(fragment: &Html, index: isize) -> anyhow::Result<Vec<String>> {
+    let answers_str_selector: String = format!("#pyt{} > .odpcont", index).to_string();
+    let answers_selector: Selector;
+
+    match Selector::parse(&answers_str_selector) {
+        Ok(v) => answers_selector = v,
+        Err(e) => return Err(anyhow!(e.to_string()))
+    };
+
+    let mut answers: Vec<String> = vec![];
+
+    let mut answers_iterator = fragment.select(&answers_selector);
+
+    loop {
+        let answer = answers_iterator.next();
+
+        if answer.is_none() {
+            break;
+        }
+
+        answers.push(answer.unwrap().text().collect::<Vec<_>>().join(""));
+    }
+
+    return Ok(answers);
+}
 
 #[tauri::command]
 fn generate_new_set() -> Result<String, String> {
@@ -57,6 +82,13 @@ fn generate_new_set() -> Result<String, String> {
         };
 
         questions.push(question_text);
+
+        match get_answers(&fragment, i) {
+            Ok(v) => v.iter().for_each(|item| questions.push(item.to_string())),
+            Err(e) => return Err(e.to_string()),
+        };
+
+        questions.push("\n".to_string());
     };
 
     Ok(questions.join("\n").to_string())
