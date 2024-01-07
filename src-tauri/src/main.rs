@@ -1,8 +1,29 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use std::sync::Mutex;
+
 use anyhow::anyhow;
 use scraper::{Html, Selector};
+
+#[derive(Debug)]
+struct Question {
+    question: String,
+    code: Option<String>,
+    image: Option<String>,
+    answers: Vec<String>,
+}
+
+impl Question {
+    fn new(question: String, code: Option<String>, image: Option<String>, answers: Vec<String>) -> Question {
+        return Question{
+            question,
+            code,
+            image,
+            answers
+        };
+    }
+}
 
 fn get_question(fragment: &Html, question_index: isize) -> anyhow::Result<String> {
     let question_text_selector: Selector;
@@ -56,21 +77,23 @@ fn get_answers(fragment: &Html, index: isize) -> anyhow::Result<Vec<String>> {
     return Ok(answers);
 }
 
+struct QuestionsState(Mutex<Vec<Question>>);
+
 #[tauri::command]
-fn generate_new_set() -> Result<String, String> {
+async fn generate_new_set<'a>(state: tauri::State<'a, QuestionsState>) -> Result<(), String> {
     let text: String;
 
-    match reqwest::blocking::get("https://technikinformatyk.pl/kwalifikacja-inf-03-egzamin-online/") {
-        Ok(v) => match v.text() {
+    match reqwest::get("https://technikinformatyk.pl/kwalifikacja-inf-03-egzamin-online/").await {
+        Ok(v) => match v.text().await {
             Ok(v) => text = v,
             Err(e) => return Err(e.to_string()),
         },
         Err(e) => return Err(e.to_string()),
     };
 
-    let mut questions: Vec<String> = vec![];
-    
     let fragment = Html::parse_document(text.as_str());
+
+    let mut questions: Vec<Question> = vec![];
 
     for i in 1..41 {
         // question
@@ -81,22 +104,40 @@ fn generate_new_set() -> Result<String, String> {
             Err(e) => return Err(e.to_string()),
         };
 
-        questions.push(question_text);
+        let mut answers: Vec<String> = vec![];
 
         match get_answers(&fragment, i) {
-            Ok(v) => v.iter().for_each(|item| questions.push(item.to_string())),
+            Ok(v) => v.iter().for_each(|item| answers.push(item.to_string())),
             Err(e) => return Err(e.to_string()),
         };
 
-        questions.push("\n".to_string());
+        let question = Question::new(question_text, None, None, answers);
+
+        questions.push(question);
     };
 
-    Ok(questions.join("\n").to_string())
+    let mut nt = state.0.lock().unwrap();
+    *nt = questions;
+
+    return Ok(());
+}
+
+#[tauri::command]
+fn get_question_from_state(state: tauri::State<QuestionsState>) -> Option<String> {
+    let questions = &state.0.lock().unwrap();
+    println!("{:?}", questions);
+
+    let question_obj = questions.get(0).unwrap();
+
+    let question = question_obj.question.clone();
+
+    return Some(question);
 }
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![generate_new_set])
+        .manage(QuestionsState(Default::default()))
+        .invoke_handler(tauri::generate_handler![generate_new_set, get_question_from_state])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -29,10 +29,16 @@
 
       const { invoke } = window.__TAURI__.tauri
 
-      invoke("generate_new_set", {})
-        .then(res => console.log(res))
-        .catch(err => console.error(err));
+      const fetch = async () => {
+        await invoke("generate_new_set", {})
+          .then(res => console.log(res))
+          .catch(err => console.error(err));
 
+        await invoke("get_question_from_state")
+          .then(res => console.log(res));
+      }
+
+      fetch();
     </script>
   </body>
 </html>
