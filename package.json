@@ -4,7 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "tailwind-watch": "bunx tailwindcss -o ./src/styles.css --watch"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1.5.8",
