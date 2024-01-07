@@ -1,7 +1,35 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use anyhow::anyhow;
 use scraper::{Html, Selector};
+
+fn get_question(fragment: &Html, question_index: isize) -> anyhow::Result<String> {
+    let question_text_selector: Selector;
+
+    match Selector::parse(&format!("#pyt{} > .pytanietext", question_index).to_string()) {
+        Ok(selector) => question_text_selector = selector,
+        Err(e) => return Err(anyhow!("{}", e)),
+    };
+
+    let mut question_text: String;
+
+    match fragment.select(&question_text_selector).next() {
+        Some(v) => question_text = v.inner_html(),
+        None => return Err(anyhow!("'fragment.select(&question_text_selector).next()' returned None.")),
+    };
+
+    let question_identifier_length = "Pytanie ".len() + question_index.to_string().len() + 1;
+
+    question_text = question_text[question_identifier_length..].to_string()
+        .replace("<font>", "")
+        .replace("</font>", "")
+        .trim()
+        .to_string();
+
+    return Ok(question_text);
+}
+
 
 #[tauri::command]
 fn generate_new_set() -> Result<String, String> {
@@ -21,27 +49,12 @@ fn generate_new_set() -> Result<String, String> {
 
     for i in 1..41 {
         // question
-        let question_text_selector: Selector;
+        let question_text: String;
 
-        match Selector::parse(&format!("#pyt{} > .pytanietext", i).to_string()) {
-            Ok(selector) => question_text_selector = selector,
+        match get_question(&fragment, i) {
+            Ok(v) => question_text = v,
             Err(e) => return Err(e.to_string()),
         };
-
-        let mut question_text: String;
-
-        match fragment.select(&question_text_selector).next() {
-            Some(v) => question_text = v.inner_html(),
-            None => return Err(String::from("'fragment.select(&question_text_selector).next()' returned None.")),
-        };
-
-        let question_identifier_length = "Pytanie ".len() + i.to_string().len() + 1;
-
-        question_text = question_text[question_identifier_length..].to_string()
-            .replace("<font>", "")
-            .replace("</font>", "")
-            .trim()
-            .to_string();
 
         questions.push(question_text);
     };
