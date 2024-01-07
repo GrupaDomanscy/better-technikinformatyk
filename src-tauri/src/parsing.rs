@@ -1,7 +1,7 @@
 use anyhow::anyhow;
 use scraper::{Selector, Html};
 
-use crate::{ParserQuestionsState, models::Question};
+use crate::models::Question;
 
 fn get_question(fragment: &Html, question_index: isize) -> anyhow::Result<String> {
     let question_text_selector: Selector;
@@ -55,16 +55,15 @@ fn get_answers(fragment: &Html, index: isize) -> anyhow::Result<Vec<String>> {
     return Ok(answers);
 }
 
-#[tauri::command]
-pub async fn generate_new_set<'a>(state: tauri::State<'a, crate::ParserQuestionsState>) -> Result<(), String> {
+pub async fn generate_new_set() -> anyhow::Result<Vec<Question>> {
     let text: String;
 
     match reqwest::get("https://technikinformatyk.pl/kwalifikacja-inf-03-egzamin-online/").await {
         Ok(v) => match v.text().await {
             Ok(v) => text = v,
-            Err(e) => return Err(e.to_string()),
+            Err(e) => return Err(anyhow!(e)),
         },
-        Err(e) => return Err(e.to_string()),
+        Err(e) => return Err(anyhow!(e)),
     };
 
     let fragment = Html::parse_document(text.as_str());
@@ -77,14 +76,14 @@ pub async fn generate_new_set<'a>(state: tauri::State<'a, crate::ParserQuestions
 
         match get_question(&fragment, i) {
             Ok(v) => question_text = v,
-            Err(e) => return Err(e.to_string()),
+            Err(e) => return Err(anyhow!(e)),
         };
 
         let mut answers: Vec<String> = vec![];
 
         match get_answers(&fragment, i) {
             Ok(v) => v.iter().for_each(|item| answers.push(item.to_string())),
-            Err(e) => return Err(e.to_string()),
+            Err(e) => return Err(anyhow!(e)),
         };
 
         let question = Question::new(question_text, None, None, answers);
@@ -92,20 +91,5 @@ pub async fn generate_new_set<'a>(state: tauri::State<'a, crate::ParserQuestions
         questions.push(question);
     };
 
-    let mut nt = state.0.lock().unwrap();
-    *nt = questions;
-
-    return Ok(());
+    return Ok(questions);
 }
-
-#[tauri::command]
-pub fn get_question_from_state(state: tauri::State<ParserQuestionsState>) -> Option<String> {
-    let questions = &state.0.lock().unwrap();
-
-    let question_obj = questions.get(0).unwrap();
-
-    let question = question_obj.question().clone();
-
-    return Some(question);
-}
-
