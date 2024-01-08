@@ -5,7 +5,7 @@ const escape = (payload) => {
 const chooseQuestionContainer = document.querySelector("#choose-question-container");
 
 const QuestionIdentifier = (idx) => {
-    return `<div class="p-5 text-center text-3xl text-neutral-200 hover:bg-stone-800 rounded-xl cursor-pointer">${escape(idx)}</div>`;
+    return `<div class="p-5 text-center text-3xl text-neutral-200 hover:bg-stone-800 rounded-xl cursor-pointer" onclick="switchQuestion(${idx - 1})">${escape(idx)}</div>`;
 }
 
 const renderTemplate = (template) => {
