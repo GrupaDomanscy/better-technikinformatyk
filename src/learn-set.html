@@ -6,11 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Better Technikinformatyk</title>
     <link rel="stylesheet" href="./styles.css">
+
+    <style>
+    img {
+      filter: invert(1) hue-rotate(45deg);
+    }
+    </style>
   </head>
 
   <body class="min-h-screen w-full bg-stone-900">
-    <div class="absolute top-5 left-5 text-3xl text-neutral-200 cursor-pointer rounded-xl hover:bg-stone-800 py-5 px-6" id="go-back-arrow">&larr;</div>
-
     <div class="w-full max-w-lg sm:max-w-xl lg:max-w-3xl min-h-screen p-4 flex flex-col items-center justify-center mx-auto gap-8" id="question-container">
     </div>
 
@@ -19,35 +23,41 @@
       const { invoke } = window.__TAURI__;
       const {code, button, div, p, input, label, pre, img} = van.tags;
 
-      // back arrow
-      const goBackArrow = document.querySelector("#go-back-arrow");
-
-      goBackArrow.addEventListener("click", () => {
-        window.location.href = "/";
-      });
+      const GoBackArrow = ({ backUrl }) => {
+        return div({ 
+          class: "absolute top-5 left-5 text-3xl text-neutral-200 cursor-pointer rounded-xl hover:bg-stone-800 py-5 px-6", 
+          onclick: () => window.location.href = backUrl,
+          innerHTML: "&larr;"
+        }, "");
+      }
 
       // question
       let index = 0;
       let questionCount;
 
-      const generateQuestion = (question, questionCode, image, answers) => {
-        return div(
-          { class: "w-full flex flex-col gap-2" },
+      const Question = ({ question, code: questionCode, image, answers }) => {
+        const children = [
+          p({ class: "text-neutral-200 text-xl font-bold" }, question)
+        ];
 
-          p({ class: "text-neutral-200 text-xl font-bold" }, question),
-
-          ...[questionCode !== null ? code(
+        if (questionCode !== null) {
+          children.push(code(
                 { class: "text-neutral-400 p-4 rounded-xl bg-stone-800 overflow-x-scroll" },
             pre({ innerHTML: questionCode })
-          ) : ""],
+          ));
+        }
 
-          ...[image !== null ? img({ src: image }) : ""],
+        if (image !== null) {
+          children.push(div({ class: "flex" }, img({ src: image, class: "rounded-xl", style: `max-height: 700px;` })));
+        }
 
-          ...answers.map((answer, idx) => div(
-            { class: "flex flex-row gap-2 items-center" },
-            input({ type: "radio", name: "question-answer", id: `label-${idx}`, class: "w-4 h-4" }),
-            label({ class: "text-neutral-200", for: `label-${idx}` }, answer)
-          )),
+        answers.forEach((answer, idx) => children.push(div(
+          { class: "flex flex-row gap-2 items-center" },
+          input({ type: "radio", name: "question-answer", id: `label-${idx}`, class: "w-4 h-4" }),
+          label({ class: "text-neutral-200", for: `label-${idx}` }, answer)
+        )));
+
+        children.push(
           div(
             { class: "flex flex-row justify-end" },
             button({ 
@@ -59,6 +69,12 @@
             }, "Następne")
           )
         );
+
+        return div(
+          { class: "w-full flex flex-col gap-2" },
+
+          ...children
+        );
       };
 
       const renderQuestion = () => {
@@ -66,7 +82,13 @@
           .then(question => {
             const container = document.querySelector("#question-container");
             container.innerHTML = "";
-            container.appendChild(generateQuestion(question.question, question.code, question.image, question.answers));
+            container.appendChild(
+              Question({ 
+                question: question.question, 
+                code: question.code, 
+                image: question.image, 
+                answers: question.answers
+              }));
           });
       }
 
@@ -77,6 +99,8 @@
       window.addEventListener("DOMContentLoaded", async () => {
         questionCount = await getQuestionCount();
         await renderQuestion();
+
+        document.querySelector("body").appendChild(GoBackArrow({ backUrl: "/" }));
       });
     </script>
 </html>
