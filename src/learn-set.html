@@ -17,7 +17,7 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/vanjs-org/van/public/van-1.2.7.nomodule.min.js"></script>
     <script>
       const { invoke } = window.__TAURI__;
-      const {button, div, p, input, label} = van.tags;
+      const {code, button, div, p, input, label, pre} = van.tags;
 
       // back arrow
       const goBackArrow = document.querySelector("#go-back-arrow");
@@ -30,10 +30,17 @@
       let index = 0;
       let questionCount;
 
-      const generateQuestion = (question, answers) => {
+      const generateQuestion = (question, questionCode, answers) => {
         return div(
           { class: "w-full flex flex-col gap-2" },
+
           p({ class: "text-neutral-200 text-xl font-bold" }, question),
+
+          ...[questionCode !== null ? code(
+                { class: "text-neutral-400 p-4 rounded-xl bg-stone-800 overflow-x-scroll" },
+                pre(questionCode)
+          ) : ""],
+
           ...answers.map((answer, idx) => div(
             { class: "flex flex-row gap-2 items-center" },
             input({ type: "radio", name: "question-answer", id: `label-${idx}`, class: "w-4 h-4" }),
@@ -56,9 +63,8 @@
         return invoke('get_question_from_state_by_index', { index })
           .then(question => {
             const container = document.querySelector("#question-container");
-            console.log(container, question, index);
             container.innerHTML = "";
-            container.appendChild(generateQuestion(question.question, question.answers));
+            container.appendChild(generateQuestion(question.question, question.code, question.answers));
           });
       }
 

@@ -1,5 +1,5 @@
 use anyhow::anyhow;
-use scraper::{Selector, Html};
+use scraper::{Selector, Html, Node};
 
 use crate::models::Question;
 
@@ -14,7 +14,15 @@ fn get_question(fragment: &Html, question_index: isize) -> anyhow::Result<String
     let mut question_text: String;
 
     match fragment.select(&question_text_selector).next() {
-        Some(v) => question_text = v.text().collect::<Vec<_>>().join("").to_string(),
+        Some(v) => {
+            question_text = v.children()
+                .filter_map(|node| match node.value() {
+                    Node::Text(text) => Some(&text[..]),
+                    _ => None,
+                })
+                .collect::<Vec<_>>()
+                .join("");
+        },
         None => return Err(anyhow!("'fragment.select(&question_text_selector).next()' returned None.")),
     };
 
@@ -27,6 +35,27 @@ fn get_question(fragment: &Html, question_index: isize) -> anyhow::Result<String
         .to_string();
 
     return Ok(question_text);
+}
+
+fn get_question_code(fragment: &Html, question_index: isize) -> anyhow::Result<Option<String>> {
+    let question_text_selector: Selector;
+
+    match Selector::parse(&format!("#pyt{} > .pytanietext > code", question_index).to_string()) {
+        Ok(selector) => question_text_selector = selector,
+        Err(e) => return Err(anyhow!("{}", e)),
+    };
+
+    let mut question_text: String;
+
+    match fragment.select(&question_text_selector).next() {
+        Some(v) => question_text = v.inner_html(),
+        None => return Ok(None)
+    };
+
+    question_text = question_text.trim()
+        .to_string();
+
+    return Ok(Some(question_text));
 }
 
 fn get_answers(fragment: &Html, index: isize) -> anyhow::Result<Vec<String>> {
@@ -71,6 +100,14 @@ pub async fn generate_new_set() -> anyhow::Result<Vec<Question>> {
     let mut questions: Vec<Question> = vec![];
 
     for i in 1..41 {
+        // code
+        let code: Option<String>;
+
+        match get_question_code(&fragment, i) {
+            Ok(v) => code = v,
+            Err(e) => return Err(anyhow!(e)),
+        };
+
         // question
         let question_text: String;
 
@@ -86,7 +123,7 @@ pub async fn generate_new_set() -> anyhow::Result<Vec<Question>> {
             Err(e) => return Err(anyhow!(e)),
         };
 
-        let question = Question::new(question_text, None, None, answers);
+        let question = Question::new(question_text, code, None, answers);
 
         questions.push(question);
     };
