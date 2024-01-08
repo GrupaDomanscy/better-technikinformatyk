@@ -1,7 +1,11 @@
+const escape = (payload) => {
+    return payload.toString().replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+}
+
 const chooseQuestionContainer = document.querySelector("#choose-question-container");
 
 const QuestionIdentifier = (idx) => {
-    return `<div class="p-5 text-center text-3xl text-neutral-200 hover:bg-stone-800 rounded-xl cursor-pointer">${idx}</div>`;
+    return `<div class="p-5 text-center text-3xl text-neutral-200 hover:bg-stone-800 rounded-xl cursor-pointer">${escape(idx)}</div>`;
 }
 
 const renderTemplate = (template) => {
@@ -25,13 +29,13 @@ const chooseAnswer = (idx) => {
 
 const QuestionContainer = ({ question, code, image, answers }) => {
     return `<div class="w-full max-w-lg sm:max-w-xl lg:max-w-3xl p-5 flex flex-col items-center justify-center gap-8 mx-auto">
-    <p class="text-3xl text-neutral-300 font-semibold">${question}</p>
+    <p class="text-3xl text-neutral-300 font-semibold">${escape(question)}</p>
 
     ${code !== null ? `<code class="w-full rounded-xl bg-stone-800 p-5 overflow-y-scroll text-neutral-300">${code}</code>` : ""}
     ${image !== null ? `<img src="${image}" />` : ""}
 
     <div class="flex flex-col w-full gap-4">
-        ${answers.map((answer, idx) => `<div onclick="chooseAnswer(${idx})" class="text-neutral-300 p-3 px-5 cursor-pointer hover:bg-blue-800 duration-300 rounded-xl bg-stone-800">${answer}</div>`).join("")}
+        ${answers.map((answer, idx) => `<div onclick="chooseAnswer(${escape(idx)})" class="text-neutral-300 p-3 px-5 cursor-pointer hover:bg-blue-800 duration-300 rounded-xl bg-stone-800">${escape(answer)}</div>`).join("")}
     </div>
 </div>`;
 }
