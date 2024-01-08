@@ -1,15 +1,27 @@
 use serde::Serialize;
 
+#[derive(Debug, Serialize, Clone)]
+pub struct Answer {
+    id: String,
+    label: String,
+}
+
+impl Answer {
+    pub fn new(id: String, label: String) -> Self {
+        return Self{ id, label };
+    }
+}
+
 #[derive(Debug, Serialize)]
 pub struct Question {
     question: String,
     code: Option<String>,
     image: Option<String>,
-    answers: Vec<String>,
+    answers: Vec<Answer>,
 }
 
 impl Question {
-    pub fn new(question: String, code: Option<String>, image: Option<String>, answers: Vec<String>) -> Question {
+    pub fn new(question: String, code: Option<String>, image: Option<String>, answers: Vec<Answer>) -> Question {
         return Question{
             question,
             code,
@@ -30,7 +42,7 @@ impl Question {
         return &self.image;
     }
 
-    pub fn answers(&self) -> &Vec<String> {
+    pub fn answers(&self) -> &Vec<Answer> {
         return &self.answers;
     }
 }

@@ -1,7 +1,7 @@
 use anyhow::anyhow;
 use scraper::{Selector, Html, Node};
 
-use crate::models::Question;
+use crate::models::{Question, Answer};
 
 fn get_question(fragment: &Html, question_index: isize) -> anyhow::Result<String> {
     let question_text_selector: Selector;
@@ -75,27 +75,50 @@ fn get_image(fragment: &Html,index: isize) -> anyhow::Result<Option<String>> {
     };
 }
 
-fn get_answers(fragment: &Html, index: isize) -> anyhow::Result<Vec<String>> {
+fn get_answers(fragment: &Html, index: isize) -> anyhow::Result<Vec<Answer>> {
     let answers_str_selector: String = format!("#pyt{} > .odpcont", index).to_string();
     let answers_selector: Selector;
+
+    let answers_str_input_selector: String = format!("#pyt{} > .odpcont > input", index).to_string();
+    let answers_input_selector: Selector;
 
     match Selector::parse(&answers_str_selector) {
         Ok(v) => answers_selector = v,
         Err(e) => return Err(anyhow!(e.to_string()))
     };
 
-    let mut answers: Vec<String> = vec![];
+    match Selector::parse(&answers_str_input_selector) {
+        Ok(v) => answers_input_selector = v,
+        Err(e) => return Err(anyhow!(e.to_string()))
+    };
+
+    let mut answers: Vec<Answer> = vec![];
 
     let mut answers_iterator = fragment.select(&answers_selector);
+    let mut answer_inputs_iterator = fragment.select(&answers_input_selector);
 
     loop {
         let answer = answers_iterator.next();
+        let answer_input = answer_inputs_iterator.next();
 
         if answer.is_none() {
             break;
         }
 
-        answers.push(answer.unwrap().text().collect::<Vec<_>>().join(""));
+        if answer_input.is_none() {
+            return Err(anyhow!("Input #pyt{}, does not have the same number of answers as inputs to click", index));
+        }
+
+        let answer_text = answer.unwrap().text().collect::<Vec<_>>().join("");
+        let answer_id = answer_input.unwrap().attr("value");
+
+        if answer_id.is_none() {
+            return Err(anyhow!("Input #pyt{}, does not have a value attribute on one of its answer inputs", index));
+        }
+
+        let answer_id = answer_id.unwrap().to_string();
+
+        answers.push(Answer::new(answer_id, answer_text));
     }
 
     return Ok(answers);
@@ -133,10 +156,10 @@ pub async fn generate_new_set() -> anyhow::Result<Vec<Question>> {
             Err(e) => return Err(anyhow!(e)),
         };
 
-        let mut answers: Vec<String> = vec![];
+        let answers: Vec<Answer>;
 
         match get_answers(&fragment, i) {
-            Ok(v) => v.iter().for_each(|item| answers.push(item.to_string())),
+            Ok(v) => answers = v,
             Err(e) => return Err(anyhow!(e)),
         };
 

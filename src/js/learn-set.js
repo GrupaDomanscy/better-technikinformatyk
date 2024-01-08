@@ -35,7 +35,7 @@ const QuestionContainer = ({ question, code, image, answers }) => {
     ${image !== null ? `<img src="${image}" />` : ""}
 
     <div class="flex flex-col w-full gap-4">
-        ${answers.map((answer, idx) => `<div onclick="chooseAnswer(${escape(idx)})" class="text-neutral-300 p-3 px-5 cursor-pointer hover:bg-blue-800 duration-300 rounded-xl bg-stone-800">${escape(answer)}</div>`).join("")}
+        ${answers.map((answer, idx) => `<div onclick="chooseAnswer(\`${answer.id}\`)" class="text-neutral-300 p-3 px-5 cursor-pointer hover:bg-blue-800 duration-300 rounded-xl bg-stone-800">${escape(answer.label)}</div>`).join("")}
     </div>
 </div>`;
 }
