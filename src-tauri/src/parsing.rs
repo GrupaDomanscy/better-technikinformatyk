@@ -58,6 +58,23 @@ fn get_question_code(fragment: &Html, question_index: isize) -> anyhow::Result<O
     return Ok(Some(question_text));
 }
 
+fn get_image(fragment: &Html,index: isize) -> anyhow::Result<Option<String>> {
+    let img_selector: Selector;
+
+    match Selector::parse(&format!("#pyt{} > img", index).to_string()) {
+        Ok(selector) => img_selector = selector,
+        Err(e) => return Err(anyhow!("{}", e)),
+    };
+
+    match fragment.select(&img_selector).next() {
+        Some(v) => match v.value().attr("src") {
+            Some(v) => return Ok(Some(v.to_string())),
+            None => return Ok(None),
+        }
+        None => return Ok(None)
+    };
+}
+
 fn get_answers(fragment: &Html, index: isize) -> anyhow::Result<Vec<String>> {
     let answers_str_selector: String = format!("#pyt{} > .odpcont", index).to_string();
     let answers_selector: Selector;
@@ -123,7 +140,14 @@ pub async fn generate_new_set() -> anyhow::Result<Vec<Question>> {
             Err(e) => return Err(anyhow!(e)),
         };
 
-        let question = Question::new(question_text, code, None, answers);
+        let image: Option<String>;
+
+        match get_image(&fragment, i) {
+            Ok(v) => image = v,
+            Err(e) => return Err(anyhow!(e)),
+        };
+
+        let question = Question::new(question_text, code, image, answers);
 
         questions.push(question);
     };

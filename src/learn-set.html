@@ -17,7 +17,7 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/vanjs-org/van/public/van-1.2.7.nomodule.min.js"></script>
     <script>
       const { invoke } = window.__TAURI__;
-      const {code, button, div, p, input, label, pre} = van.tags;
+      const {code, button, div, p, input, label, pre, img} = van.tags;
 
       // back arrow
       const goBackArrow = document.querySelector("#go-back-arrow");
@@ -30,7 +30,7 @@
       let index = 0;
       let questionCount;
 
-      const generateQuestion = (question, questionCode, answers) => {
+      const generateQuestion = (question, questionCode, image, answers) => {
         return div(
           { class: "w-full flex flex-col gap-2" },
 
@@ -38,8 +38,10 @@
 
           ...[questionCode !== null ? code(
                 { class: "text-neutral-400 p-4 rounded-xl bg-stone-800 overflow-x-scroll" },
-                pre(questionCode)
+            pre({ innerHTML: questionCode })
           ) : ""],
+
+          ...[image !== null ? img({ src: image }) : ""],
 
           ...answers.map((answer, idx) => div(
             { class: "flex flex-row gap-2 items-center" },
@@ -64,7 +66,7 @@
           .then(question => {
             const container = document.querySelector("#question-container");
             container.innerHTML = "";
-            container.appendChild(generateQuestion(question.question, question.code, question.answers));
+            container.appendChild(generateQuestion(question.question, question.code, question.image, question.answers));
           });
       }
 
