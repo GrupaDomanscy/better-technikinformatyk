@@ -36,26 +36,30 @@
       let questionCount;
 
       const Question = ({ question, code: questionCode, image, answers }) => {
-        const children = [
+        const firstContainerChildren = [
           p({ class: "text-neutral-200 text-xl font-bold" }, question)
         ];
 
         if (questionCode !== null) {
-          children.push(code(
+          firstContainerChildren.push(code(
                 { class: "text-neutral-400 p-4 rounded-xl bg-stone-800 overflow-x-scroll" },
             pre({ innerHTML: questionCode })
           ));
         }
 
         if (image !== null) {
-          children.push(div({ class: "flex" }, img({ src: image, class: "rounded-xl", style: `max-height: 700px;` })));
+          firstContainerChildren.push(div({ class: "flex" }, img({ src: image, class: "rounded-xl", style: `max-height: 700px;` })));
         }
 
-        answers.forEach((answer, idx) => children.push(div(
+        const children = [
+          div({ class: "flex flex-col gap-4" }, ...firstContainerChildren)
+        ];
+
+        children.push(div(...answers.map((answer, idx) => div(
           { class: "flex flex-row gap-2 items-center" },
           input({ type: "radio", name: "question-answer", id: `label-${idx}`, class: "w-4 h-4" }),
           label({ class: "text-neutral-200", for: `label-${idx}` }, answer)
-        )));
+        ))));
 
         children.push(
           div(
@@ -71,7 +75,7 @@
         );
 
         return div(
-          { class: "w-full flex flex-col gap-2" },
+          { class: "w-full flex flex-col gap-8" },
 
           ...children
         );
