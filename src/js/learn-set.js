@@ -25,10 +25,15 @@ const switchQuestion = (questionNumber) => {
 
 const chosenAnswers = [];
 
+const getChosenAnswersLength = () => chosenAnswers.reduce((acc, cv) => (cv) ? acc + 1 : acc, 0);
+
 const chooseAnswer = (answerId) => {
     chosenAnswers[currentQuestion] = answerId;
 
-    currentQuestion++;
+    if (currentQuestion + 1 != questions.length) {
+        currentQuestion++;
+    }
+
     switchQuestion(currentQuestion);
 }
 
@@ -46,6 +51,10 @@ const QuestionContainer = ({ question, code, image, answers }) => {
             return `<div onclick="chooseAnswer(\`${escape(answer.id)}\`)" class="text-neutral-300 p-3 px-5 cursor-pointer hover:bg-blue-800 duration-300 rounded-xl answer ${chosenAnswer === answer.id ? 'bg-blue-800' : 'bg-stone-800'}">${escape(answer.label)}</div>`
         }).join("")}
     </div>
+
+    ${currentQuestion === questions.length - 1 ? `<div class="flex flex-row justify-end items-center w-full">
+        <button class="px-5 py-2 rounded-xl font-semibold ${getChosenAnswersLength() === questions.length ? 'bg-blue-800 text-neutral-200' : 'bg-stone-800 text-neutral-400" disabled'}  id="ending-button">Zakończ</button>
+</div>` : ``}
 </div>`;
 }
 
