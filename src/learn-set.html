@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Better Technikinformatyk</title>
     <link rel="stylesheet" href="./styles.css">
-
     <style>
     img {
       filter: invert(1) hue-rotate(45deg);
@@ -14,97 +13,16 @@
     </style>
   </head>
 
-  <body class="min-h-screen w-full bg-stone-900">
-    <div class="w-full max-w-lg sm:max-w-xl lg:max-w-3xl min-h-screen p-4 flex flex-col items-center justify-center mx-auto gap-8" id="question-container">
+  <body class="h-screen w-full bg-stone-900 flex flex-row">
+    <aside class="h-full flex flex-col gap-2 border-r-2 border-stone-800">
+      <div class="p-5 text-3xl text-center hover:bg-stone-800 text-neutral-300 rounded-xl cursor-pointer">&larr;</div>
+      <div class="p-5 h-full flex flex-col gap-5 overflow-y-auto" id="choose-question-container">
+      </div>
+    </aside>
+
+    <div class="flex-grow min-h-screen p-5 mx-auto" id="content-container">
     </div>
+  </body>
 
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/vanjs-org/van/public/van-1.2.7.nomodule.min.js"></script>
-    <script>
-      const { invoke } = window.__TAURI__;
-      const {code, button, div, p, input, label, pre, img} = van.tags;
-
-      const GoBackArrow = ({ backUrl }) => {
-        return div({ 
-          class: "absolute top-5 left-5 text-3xl text-neutral-200 cursor-pointer rounded-xl hover:bg-stone-800 py-5 px-6", 
-          onclick: () => window.location.href = backUrl,
-          innerHTML: "&larr;"
-        }, "");
-      }
-
-      // question
-      let index = 0;
-      let questionCount;
-
-      const Question = ({ question, code: questionCode, image, answers }) => {
-        const firstContainerChildren = [
-          p({ class: "text-neutral-200 text-xl font-bold" }, question)
-        ];
-
-        if (questionCode !== null) {
-          firstContainerChildren.push(code(
-                { class: "text-neutral-400 p-4 rounded-xl bg-stone-800 overflow-x-scroll" },
-            pre({ innerHTML: questionCode })
-          ));
-        }
-
-        if (image !== null) {
-          firstContainerChildren.push(div({ class: "flex" }, img({ src: image, class: "rounded-xl", style: `max-height: 700px;` })));
-        }
-
-        const children = [
-          div({ class: "flex flex-col gap-4" }, ...firstContainerChildren)
-        ];
-
-        children.push(div(...answers.map((answer, idx) => div(
-          { class: "flex flex-row gap-2 items-center" },
-          input({ type: "radio", name: "question-answer", id: `label-${idx}`, class: "w-4 h-4" }),
-          label({ class: "text-neutral-200", for: `label-${idx}` }, answer)
-        ))));
-
-        children.push(
-          div(
-            { class: "flex flex-row justify-end" },
-            button({ 
-              class: "px-8 py-2 text-neutral-200 font-semibold bg-blue-800 hover:bg-blue-700 duration-300 flex justify-center items-center rounded-xl",
-              onclick: () => {
-                index++;
-                renderQuestion();
-              }
-            }, "Następne")
-          )
-        );
-
-        return div(
-          { class: "w-full flex flex-col gap-8" },
-
-          ...children
-        );
-      };
-
-      const renderQuestion = () => {
-        return invoke('get_question_from_state_by_index', { index })
-          .then(question => {
-            const container = document.querySelector("#question-container");
-            container.innerHTML = "";
-            container.appendChild(
-              Question({ 
-                question: question.question, 
-                code: question.code, 
-                image: question.image, 
-                answers: question.answers
-              }));
-          });
-      }
-
-      const getQuestionCount = async () => {
-        return invoke('get_question_count_from_state');
-      }
-
-      window.addEventListener("DOMContentLoaded", async () => {
-        questionCount = await getQuestionCount();
-        await renderQuestion();
-
-        document.querySelector("body").appendChild(GoBackArrow({ backUrl: "/" }));
-      });
-    </script>
+  <script src="./js/learn-set.js"></script>
 </html>

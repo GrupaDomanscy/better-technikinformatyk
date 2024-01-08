@@ -1,14 +1,14 @@
 {
   "name": "better-technikinformatyk",
-  "private": true,
   "version": "0.0.0",
-  "type": "module",
+  "devDependencies": {
+    "@tauri-apps/cli": "^1.5.8",
+    "tailwindcss": "^3.4.1"
+  },
+  "private": true,
   "scripts": {
     "tauri": "tauri",
     "tailwind-watch": "bunx tailwindcss -o ./src/styles.css --watch"
   },
-  "devDependencies": {
-    "@tauri-apps/cli": "^1.5.8",
-    "tailwindcss": "^3.4.1"
-  }
+  "type": "module"
 }
