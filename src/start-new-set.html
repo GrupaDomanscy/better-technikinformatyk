@@ -30,9 +30,10 @@
       const { invoke } = window.__TAURI__.tauri
 
       const fetch = async () => {
-        await invoke("generate_new_set", {})
-          .then(res => console.log(res))
-          .catch(err => console.error(err));
+        invoke("generate_new_set", {})
+          .then(res => {
+            window.location.href = '/learn-set.html';
+          });
       }
 
       fetch();
