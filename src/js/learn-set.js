@@ -5,7 +5,17 @@ const escape = (payload) => {
 const chooseQuestionContainer = document.querySelector("#choose-question-container");
 
 const QuestionIdentifier = (idx) => {
-    return `<div class="p-5 text-center text-3xl text-neutral-200 hover:bg-stone-800 rounded-xl cursor-pointer" onclick="switchQuestion(${idx - 1})">${escape(idx)}</div>`;
+    const hasChosenAnswer = chosenAnswers[idx] !== undefined;
+    const isCurrentQuestion = currentQuestion === idx;
+
+    let classes;
+
+    if (hasChosenAnswer && isCurrentQuestion) classes = `bg-blue-800`;
+    else if (hasChosenAnswer) classes = `hover:bg-blue-800 bg-blue-900`
+    else if (isCurrentQuestion) classes = `bg-stone-800`
+    else classes = `hover:bg-stone-800`
+
+    return `<div class="p-5 text-center text-3xl text-neutral-200 rounded-xl cursor-pointer ${classes}" onclick="switchQuestion(${escape(idx)})">${escape(idx + 1)}</div>`;
 }
 
 const renderTemplate = (template) => {
@@ -21,6 +31,7 @@ const switchQuestion = (questionNumber) => {
     currentQuestion = questionNumber;
     contentContainer.innerHTML = "";
     contentContainer.appendChild(renderTemplate(QuestionContainer(questions[questionNumber])));
+    renderQuestionIdentifiers();
 }
 
 const chosenAnswers = [];
@@ -60,12 +71,20 @@ const QuestionContainer = ({ question, code, image, answers }) => {
 
 let currentQuestion = 0, questions, questionsCount;
 
+const renderQuestionIdentifiers = () => {
+    chooseQuestionContainer.innerHTML = "";
+
+    for (let i = 0; i < questionsCount; i++) {
+        chooseQuestionContainer.appendChild(renderTemplate(QuestionIdentifier(i)));
+    }
+}
+
 const main = async () => {
     questionsCount = await window.__TAURI__.invoke('get_question_count_from_state');
     questions = await window.__TAURI__.invoke('get_all_questions_from_state');
 
     for (let i = 0; i < questionsCount; i++) {
-        chooseQuestionContainer.appendChild(renderTemplate(QuestionIdentifier(i + 1)));
+        chooseQuestionContainer.appendChild(renderTemplate(QuestionIdentifier(i)));
     }
 
     contentContainer.appendChild(renderTemplate(QuestionContainer(questions[currentQuestion])));
