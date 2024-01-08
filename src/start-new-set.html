@@ -12,15 +12,18 @@
     <div class="absolute top-5 left-5 text-3xl text-neutral-200 cursor-pointer rounded-xl hover:bg-stone-800 py-5 px-6" id="go-back-arrow">&larr;</div>
 
     <div class="container min-h-screen p-4 flex flex-col justify-center items-center mx-auto gap-8">
-      <h1 class="text-neutral-300 font-bold text-3xl">Pobieranie nowych pytań</h1>
+      <h1 class="text-neutral-300 font-bold text-3xl" id="title">Pobieranie nowych pytań</h1>
 
       <div class="flex flex-row gap-2 justify-center items-center">
-        <div class="border-l-2 border-b-2 border-r-2 border-dashed border-neutral-200 p-4 rounded-full animate-spin"></div>
-        <p class="text-neutral-200">Proszę czekać...</p>
+        <div class="border-l-2 border-b-2 border-r-2 border-dashed border-neutral-200 p-4 rounded-full animate-spin" id="status-spinner"></div>
+        <p class="text-neutral-200" id="status">Proszę czekać...</p>
       </div>
     </div>
 
     <script>
+      const titleElement = document.querySelector("#title");
+      const statusSpinnerElement = document.querySelector("#status-spinner");
+      const statusElement = document.querySelector("#status");
       const goBackArrow = document.querySelector("#go-back-arrow");
 
       goBackArrow.addEventListener("click", () => {
@@ -33,6 +36,11 @@
         invoke("generate_new_set", {})
           .then(res => {
             window.location.href = '/learn-set.html';
+          })
+          .catch(err => {
+            titleElement.innerHTML = "Wystąpił błąd"
+            statusSpinnerElement.remove();
+            statusElement.innerHTML = err
           });
       }
 
