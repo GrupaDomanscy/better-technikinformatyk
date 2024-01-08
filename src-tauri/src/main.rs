@@ -60,6 +60,28 @@ fn get_question_from_state(state: tauri::State<TestState>) -> Option<String> {
 }
 
 #[tauri::command]
+fn get_question_from_state_by_index(index: usize, state: tauri::State<TestState>) -> Option<Question> {
+    let state = state.clone();
+    let state = state.lock().unwrap();
+    
+    let val = state.questions.get(index);
+
+    if val.is_none() {
+        return None;
+    }
+
+    return Some(val.unwrap().clone());
+}
+
+#[tauri::command]
+fn get_question_count_from_state(state: tauri::State<TestState>) -> usize {
+    let state = state.clone();
+    let state = state.lock().unwrap();
+
+    return state.questions().len();
+}
+
+#[tauri::command]
 fn get_all_questions_from_state(state: tauri::State<TestState>) -> Vec<Question> {
     let state = state.clone();
     let state = state.lock().unwrap();
@@ -72,7 +94,13 @@ fn get_all_questions_from_state(state: tauri::State<TestState>) -> Vec<Question>
 fn main() {
     tauri::Builder::default()
         .manage(Arc::new(Mutex::new(TestStateShape::new())))
-        .invoke_handler(tauri::generate_handler![generate_new_set, get_question_from_state, get_all_questions_from_state])
+        .invoke_handler(tauri::generate_handler![
+            generate_new_set, 
+            get_question_from_state, 
+            get_all_questions_from_state, 
+            get_question_from_state_by_index,
+            get_question_count_from_state,
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

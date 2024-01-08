@@ -20,6 +20,11 @@
         <div class="border p-4 rounded-xl border-stone-800 shadow text-center bg-stone-800 hover:bg-stone-700 cursor-pointer duration-200">
           Ćwicz nieudane
         </div>
+
+        <div class="border p-4 rounded-xl border-stone-800 shadow text-center bg-stone-800 hover:bg-stone-700 cursor-pointer duration-200" id="debug">
+          Debug
+        </div>
+
       </div>
     </div>
 
@@ -29,6 +34,10 @@
       addNewSetButton.addEventListener("click", (e) => {
         window.location.href = "/start-new-set.html";
       });
+
+      const debugButton = document.querySelector("#debug");
+
+      debugButton.addEventListener("click", e => window.location.href = "/learn-set.html");
     </script>
   </body>
 </html>
