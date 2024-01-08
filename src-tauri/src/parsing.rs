@@ -1,3 +1,5 @@
+use std::usize;
+
 use anyhow::anyhow;
 use scraper::{Selector, Html, Node};
 
@@ -75,6 +77,38 @@ fn get_image(fragment: &Html,index: isize) -> anyhow::Result<Option<String>> {
     };
 }
 
+fn get_listpyt_attribute(fragment: &Html) -> anyhow::Result<Vec<String>> {
+    let selector_str: String = "input[name=\"listpyt\"]".to_string();
+    let selector: Selector;
+
+    match Selector::parse(&selector_str) {
+        Ok(v) => selector = v,
+        Err(e) => return Err(anyhow!(e.to_string()))
+    };
+
+    let mut iterator = fragment.select(&selector);
+    let input;
+
+    match iterator.next() {
+        Some(v) => input = v,
+        None => return Err(anyhow!("Input with 'listpyt' value does not exist.")),
+    };
+
+    let attr = input.attr("value");
+
+    if attr.is_none() {
+        return Err(anyhow!("Input with 'listpyt' value does not have 'value' attribute set."));
+    }
+
+    let vec = attr.unwrap()
+        .split("-")
+        .filter(|item| item.len() != 0)
+        .map(|item| item.to_string())
+        .collect::<Vec<String>>();
+
+    return Ok(vec)
+}
+
 fn get_answers(fragment: &Html, index: isize) -> anyhow::Result<Vec<Answer>> {
     let answers_str_selector: String = format!("#pyt{} > .odpcont", index).to_string();
     let answers_selector: Selector;
@@ -139,6 +173,8 @@ pub async fn generate_new_set() -> anyhow::Result<Vec<Question>> {
 
     let mut questions: Vec<Question> = vec![];
 
+    let listpyt_attr = get_listpyt_attribute(&fragment)?;
+
     for i in 1..41 {
         // code
         let code: Option<String>;
@@ -170,7 +206,14 @@ pub async fn generate_new_set() -> anyhow::Result<Vec<Question>> {
             Err(e) => return Err(anyhow!(e)),
         };
 
-        let question = Question::new(question_text, code, image, answers);
+        let question_listpyt_attr: String;
+
+        match listpyt_attr.get((i - 1) as usize) {
+            Some(v) => question_listpyt_attr = v.clone(),
+            None => return Err(anyhow!("'listpyt' attribute value has not been found for question {}", i))
+        };
+
+        let question = Question::new(question_text, code, image, answers, question_listpyt_attr);
 
         questions.push(question);
     };

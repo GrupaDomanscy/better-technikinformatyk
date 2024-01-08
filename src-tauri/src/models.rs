@@ -18,15 +18,19 @@ pub struct Question {
     code: Option<String>,
     image: Option<String>,
     answers: Vec<Answer>,
+
+    listpyt_attr: String,
 }
 
 impl Question {
-    pub fn new(question: String, code: Option<String>, image: Option<String>, answers: Vec<Answer>) -> Question {
+    pub fn new(question: String, code: Option<String>, image: Option<String>, answers: Vec<Answer>, listpyt_attr: String) -> Question {
         return Question{
             question,
             code,
             image,
-            answers
+            answers,
+
+            listpyt_attr
         };
     }
 
@@ -53,7 +57,8 @@ impl Clone for Question {
             question: self.question.clone(),
             code: self.code.clone(),
             image: self.image.clone(),
-            answers: self.answers.clone()
+            answers: self.answers.clone(),
+            listpyt_attr: self.listpyt_attr.clone(),
         };
     }
 }
