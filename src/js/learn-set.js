@@ -18,16 +18,23 @@ const renderTemplate = (template) => {
 const contentContainer = document.querySelector("#content-container");
 
 const switchQuestion = (questionNumber) => {
+    currentQuestion = questionNumber;
     contentContainer.innerHTML = "";
     contentContainer.appendChild(renderTemplate(QuestionContainer(questions[questionNumber])));
 }
 
-const chooseAnswer = (idx) => {
+const chosenAnswers = [];
+
+const chooseAnswer = (answerId) => {
+    chosenAnswers[currentQuestion] = answerId;
+
     currentQuestion++;
     switchQuestion(currentQuestion);
 }
 
 const QuestionContainer = ({ question, code, image, answers }) => {
+    const chosenAnswer = chosenAnswers[currentQuestion];
+
     return `<div class="w-full max-w-lg sm:max-w-xl lg:max-w-3xl p-5 flex flex-col items-center justify-center gap-8 mx-auto">
     <p class="text-3xl text-neutral-300 font-semibold">${escape(question)}</p>
 
@@ -35,7 +42,9 @@ const QuestionContainer = ({ question, code, image, answers }) => {
     ${image !== null ? `<img src="${image}" />` : ""}
 
     <div class="flex flex-col w-full gap-4">
-        ${answers.map((answer, idx) => `<div onclick="chooseAnswer(\`${answer.id}\`)" class="text-neutral-300 p-3 px-5 cursor-pointer hover:bg-blue-800 duration-300 rounded-xl bg-stone-800">${escape(answer.label)}</div>`).join("")}
+        ${answers.map((answer, idx) => {
+            return `<div onclick="chooseAnswer(\`${escape(answer.id)}\`)" class="text-neutral-300 p-3 px-5 cursor-pointer hover:bg-blue-800 duration-300 rounded-xl answer ${chosenAnswer === answer.id ? 'bg-blue-800' : 'bg-stone-800'}">${escape(answer.label)}</div>`
+        }).join("")}
     </div>
 </div>`;
 }
