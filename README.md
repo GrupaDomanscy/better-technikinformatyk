@@ -3,8 +3,8 @@
 Koncept aplikacji poprawiającej użytkowanie strony [technikinformatyk.pl](technikinformatyk.pl).
 
 Dwie główne funkcje:
-    - Wskazywanie poprawnej odpowiedzi po zakończeniu
-    - Powtarzanie pytań, na które wcześniej źle odpowiedziano
+ - Wskazywanie poprawnej odpowiedzi po zakończeniu
+ - Powtarzanie pytań, na które wcześniej źle odpowiedziano
 
 ## Aftermath
 
