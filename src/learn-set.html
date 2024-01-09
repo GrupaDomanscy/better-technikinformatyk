@@ -15,7 +15,7 @@
 
   <body class="h-screen w-full bg-stone-900 flex flex-row">
     <aside class="h-full flex flex-col border-r-2 border-stone-800">
-      <div class="p-5 mx-5 mt-5 text-3xl text-center hover:bg-stone-800 text-neutral-300 rounded-xl cursor-pointer">&larr;</div>
+      <div class="p-5 mx-5 mt-5 text-3xl text-center hover:bg-stone-800 text-neutral-300 rounded-xl cursor-pointer" id="go-back-arrow">&larr;</div>
       <div class="p-5 h-full flex flex-col gap-5 overflow-y-auto" id="choose-question-container">
       </div>
     </aside>
@@ -24,5 +24,10 @@
     </div>
   </body>
 
+  <script src="./js/go-back-arrow.js"></script>
   <script src="./js/learn-set.js"></script>
+
+  <script>
+    GoBackArrow({ backUrl: "/" });
+  </script>
 </html>

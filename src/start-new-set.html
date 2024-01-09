@@ -20,17 +20,15 @@
       </div>
     </div>
 
+    <script src="./js/go-back-arrow.js"></script>
     <script>
       const titleElement = document.querySelector("#title");
       const statusSpinnerElement = document.querySelector("#status-spinner");
       const statusElement = document.querySelector("#status");
-      const goBackArrow = document.querySelector("#go-back-arrow");
-
-      goBackArrow.addEventListener("click", () => {
-        window.location.href = "/";
-      });
 
       const { invoke } = window.__TAURI__.tauri
+
+      GoBackArrow({ backUrl: "/" });
 
       const fetch = async () => {
         invoke("generate_new_set", {})
