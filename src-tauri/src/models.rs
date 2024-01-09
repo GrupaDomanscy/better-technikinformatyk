@@ -10,6 +10,14 @@ impl Answer {
     pub fn new(id: String, label: String) -> Self {
         return Self{ id, label };
     }
+
+    pub fn id(&self) -> &String {
+        return &self.id;
+    }
+
+    pub fn label(&self) -> &String {
+        return &self.label;
+    }
 }
 
 #[derive(Debug, Serialize)]

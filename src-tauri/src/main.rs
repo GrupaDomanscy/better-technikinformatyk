@@ -91,6 +91,38 @@ fn get_all_questions_from_state(state: tauri::State<TestState>) -> Vec<Question>
     return questions;
 }
 
+#[tauri::command(async)]
+fn check_answers(user_answers: Vec<String>, state: tauri::State<TestState>) -> Result<(), String> {
+    let state = state.clone();
+    let state = state.lock().unwrap();
+
+    let questions = state.questions();
+
+    for i in 0..questions.len() {
+        let question: Question;
+
+        match questions.get(i) {
+            Some(v) => question = v.clone(),
+            None => return Err(format!("Question idx: {} does not exist.", i))
+        };
+
+        let user_answer_id: String;
+
+        match user_answers.get(i) {
+            Some(v) => user_answer_id = v.clone(),
+            None => return Err(format!("User answer idx: {} does not exist.", i))
+        };
+
+        let question_answer_ids: Vec<String> = question.answers().iter().map(|answer| answer.id().clone()).collect::<Vec<String>>();
+
+        if !question_answer_ids.contains(&user_answer_id) {
+            return Err(format!("User answer ID: {} is not a valid value for question idx: {}", user_answer_id, i));
+        }
+    }
+
+    return Ok(());
+}
+
 fn main() {
     tauri::Builder::default()
         .manage(Arc::new(Mutex::new(TestStateShape::new())))

@@ -64,9 +64,13 @@ const QuestionContainer = ({ question, code, image, answers }) => {
     </div>
 
     ${currentQuestion === questions.length - 1 ? `<div class="flex flex-row justify-end items-center w-full">
-        <button class="px-5 py-2 rounded-xl font-semibold ${getChosenAnswersLength() === questions.length ? 'bg-blue-800 text-neutral-200' : 'bg-stone-800 text-neutral-400" disabled'}  id="ending-button">Zakończ</button>
+        <button class="px-5 py-2 rounded-xl font-semibold ${getChosenAnswersLength() === questions.length ? 'bg-blue-800 text-neutral-200' : 'bg-stone-800 text-neutral-400" disabled'} id="ending-button" onclick="end()">Zakończ</button>
 </div>` : ``}
 </div>`;
+}
+
+const end = () => {
+    window.__TAURI__.invoke('check_answers', answers);
 }
 
 let currentQuestion = 0, questions, questionsCount;
